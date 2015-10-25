@@ -59,7 +59,7 @@ var data = [{
 ```
 
 ```javascript
-var JSONAPISerializer = require('jsonapi-serializer');
+var JSONAPISerializer = require('jsonapi-serializer').Serializer;
 
 var users =new JSONAPISerializer('users', data, {
   topLevelLinks: { self: 'http://localhost:3000/api/users' },
@@ -258,6 +258,142 @@ The result will be something like:
 }
 ```
 
+**JSONAPIDeSerializer(collectionName, payload)** deserializes a JSON API *payload*
+(e.g req.body or res.body) into *collectionName* it can be either `{}` or
+an Object "Class".
+
+- collectionName: {} or Object ("Class")
+- payload: JSON API compliant payload
+
+JSON API Payload
+```javascript
+```
+
+Result
+```javascript
+```
+
+Example with Express Server and Mongoose
+
+```javascript
+var express = require('express');
+var bodyParser = require('body-parser');
+var JSONAPIDeSerializer = require('jsonapi-serializer').DeSerializer;
+var _ = require('lodash');
+
+// parse application/json
+app.use(bodyParser.json());
+
+// parse application/vnd.api+json as json
+app.use(bodyParser.json({
+  type: 'application/vnd.api+json'
+}));
+
+/**
+ * JSON API Content-Type HEADER
+ */
+app.use((req, res, next) => {
+  res.set('Content-Type', 'application/vnd.api+json');
+  next();
+});
+
+var orders = require('./lib/orders');
+
+// JSON API deserializer as express middleware
+app.use((req, res, next) => {
+  // If request Content-Type is plain JSON do not serialize
+  // If request does not have body (e.g) GET or req.body = {} do not serialize
+  // If request body is not JSON API compliant do not serialize (e.g) req.body is not empty but not inside data
+  if (req.headers['Content-Type'] === 'application/json' ||
+    _.isEmpty(req.body) ||
+    _.isEmpty(req.body.data)) {
+    return next();
+  }
+  var model = new JSONAPIDeSerializer({}, req.body);
+  // Only pick not (null or undenfined) attributes
+  model = _.pick(model, (attr) => {
+    return attr !== null && attr !== undefined;
+  });
+  req.model = model;
+  next();
+});
+
+// Resources
+app.use('/orders', orders);
+```
+
+Normalize JSON API relationships into Mongoose relationships
+
+```javascript
+var _ = require('lodash');
+
+// relationships comes in { plan: { id: '1-shirt' } }
+// but because we are using Mongoose, id doesn't allow us to use plain JS objects
+// so we need to extract ids
+function normalize(relationships) {
+  var normalizedData = {};
+  relationships = relationships || {};
+  Object.keys(relationships).forEach((key) => {
+    var relationData = relationships[key].data;
+    if (!relationData) {
+      return;
+    }
+    if (_.isArray(relationData)) {
+      normalizedData[key] = relationData.map((relationObject) => relationObject.id);
+    } else if (relationData.id) {
+      normalizedData[key] = relationData.id;
+    }
+  });
+  return normalizedData;
+}
+
+module.exports.normalize = normalize;
+```
+
+Order Schema
+```javascript
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+
+var OrderSchema = new Schema({
+  customer: { type: Schema.Types.ObjectId, ref: 'Customer' },
+  address: { type: Schema.Types.ObjectId, ref: 'Address'},
+  season: { type: String },
+  details: [{ type: Schema.Types.ObjectId, ref: 'OrderDetail' }],
+  createdAt: { type: Date, default: Date.now() },
+  updatedAt: { type: Date, default: Date.now() }
+});
+
+```
+
+Order's Route
+```javascript
+var Express = require('express');
+var Order = require('ec-domain').Order;
+var Serializer = require('../serializers');
+var OrdersSerializer = require('../serializers/orders_serializer');
+
+var app = new Express();
+
+/**
+ * POST
+ */
+.post((req, res, next) => {
+  var newOrder = req.model; // => From Express Middleware
+  // Then normalize JSON API relationships
+  _.merge(newOrder, Serializer.normalize(req.body.data.relationships));
+
+  // Then create Order schema
+  return Order.create(newOrder).then((order) => {
+    debug('order created', order.id);
+    // On success serialize created order
+    const jsonapi = new OrdersSerializer(order.toObject()).serialize();
+    return res.status(201).send(jsonapi);
+  }, next);
+});
+
+module.exports = app;
+```
 
 # License
 
