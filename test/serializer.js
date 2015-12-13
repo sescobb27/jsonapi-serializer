@@ -76,6 +76,54 @@ describe('Options', function () {
     });
   });
 
+  describe('typeForAttributeRecord', function () {
+    it('should set a related type according to the func return based on the attribute value', function (done) {
+      var dataSet = {
+        id: '1',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        address: [{
+          id: '2',
+          type: 'home',
+          street: 'Dogwood Way',
+          zip: '12345'
+        },{
+          id: '3',
+          type: 'work',
+          street: 'Dogwood Way',
+          zip: '12345'
+        }]
+      };
+
+      var json = new JsonApiSerializer('user', dataSet, {
+        attributes: ['firstName', 'lastName', 'address'],
+        address: {
+          ref: function(user, address) {
+            return address.id;
+          }
+        },
+        typeForAttribute: function (attribute, record) {
+          if (record) {
+            if (record.type) {
+              return record.type;
+            }
+          }
+          return attribute;
+        }
+      });
+
+      expect(json.data.type).equal('user');
+      expect(json.included[0]).to.have.property('type').equal('home');
+      expect(json.included[1]).to.have.property('type').equal('work');
+
+      expect(json.data.relationships).to.have.property('address').that.is.an('object');
+      expect(json.data.relationships.address.data[0]).to.have.property('type').that.is.eql('home');
+      expect(json.data.relationships.address.data[1]).to.have.property('type').that.is.eql('work');
+
+      done(null, json);
+    });
+  });
+
   describe('meta', function () {
     it('should set the meta key', function (done) {
       var dataSet = {
@@ -1307,6 +1355,104 @@ describe('JSON API Serializer', function () {
       expect(json.included[0]).to.have.property('links');
       expect(json.included[0].links).eql({
         self: 'http://localhost:4000/addresses/49426'
+      });
+
+      done(null, json);
+    });
+  });
+
+  describe('Related Meta inside an array compound document', function () {
+    it('should be set', function (done) {
+      var dataSet = [{
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        addresses: [{
+          addressLine1: '406 Madison Court',
+          zipCode: '49426',
+          country: 'USA'
+        }],
+      }, {
+        id: '5490143e69e49d0c8f9fc6bc',
+        firstName: 'Lawrence',
+        lastName: 'Bennett',
+        addresses: [{
+          addressLine1: '361 Shady Lane',
+          zipCode: '23185',
+          country: 'USA'
+        }]
+      }];
+
+      var json = new JsonApiSerializer('users', dataSet, {
+        topLevelLinks: {
+          self: 'http://localhost:3000/api/users'
+        },
+        attributes: ['firstName', 'lastName', 'addresses'],
+        addresses: {
+          ref: 'zipCode',
+          attributes: ['addressLine1', 'country'],
+          includedLinks: {
+            self: 'http://localhost:4000/users/1/includedlinks'
+          },
+          relationshipMeta: {
+            count: 1
+          }
+        }
+      });
+
+      expect(json.data[0].relationships.addresses.meta).eql({
+        count: 1
+      });
+
+      done(null, json);
+    });
+  });
+
+  describe('Related Meta (Function) inside an array compound document', function () {
+    it('should be set', function (done) {
+      var dataSet = [{
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        addresses: [{
+          addressLine1: '406 Madison Court',
+          zipCode: '49426',
+          country: 'USA'
+        }],
+      }, {
+        id: '5490143e69e49d0c8f9fc6bc',
+        firstName: 'Lawrence',
+        lastName: 'Bennett',
+        addresses: [{
+          addressLine1: '361 Shady Lane',
+          zipCode: '23185',
+          country: 'USA'
+        }]
+      }];
+
+      var json = new JsonApiSerializer('users', dataSet, {
+        topLevelLinks: {
+          self: 'http://localhost:3000/api/users'
+        },
+        attributes: ['firstName', 'lastName', 'addresses'],
+        addresses: {
+          ref: 'zipCode',
+          attributes: ['addressLine1', 'country'],
+          includedLinks: {
+            self: function (record, current) {
+              return 'http://localhost:4000/addresses/' + current.zipCode;
+            }
+          },
+          relationshipMeta: {
+            count: function (record, current) {
+              return record.addresses.length;
+            }
+          }
+        }
+      });
+
+      expect(json.data[0].relationships.addresses.meta).eql({
+        count: 1
       });
 
       done(null, json);
