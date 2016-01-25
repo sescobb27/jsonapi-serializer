@@ -279,10 +279,72 @@ an Object "Class".
 
 JSON API Payload
 ```javascript
+{
+  "data": {
+    "id": "1453732635522",
+    "attributes": {
+      "order-type": "subscription",
+      "production-state": "0",
+      "payment-state": "0",
+      "shipment-state": "0",
+      "created-at": null,
+      "ship-date": null,
+      "season": "WN16",
+      "box-status": "items choosen",
+      "has-add-ons": false
+    },
+    "relationships": {
+      "plan": {
+        "data": {
+          "type": "plans",
+          "id": "2-shirt"
+        }
+      },
+      "details": {
+        "data": [
+          {
+            "type": "order-details",
+            "id": "1453732637371"
+          }
+        ]
+      },
+      "customer": {
+        "data": {
+          "type": "customers",
+          "id": "1453732635522"
+        }
+      }
+    },
+    "type": "orders"
+  }
+}
 ```
 
 Result
 ```javascript
+{
+  "orderType": "subscription",
+  "productionState": "0",
+  "paymentState": "0",
+  "shipmentState": "0",
+  "createdAt": null,
+  "shipDate": null,
+  "season": "WN16",
+  "boxStatus": "items choosen",
+  "hasAddOns": false,
+  "plan": {
+    "id": "2-shirt"
+  },
+  "details": [
+    {
+      "id": "1453732637371"
+    }
+  ],
+  "customer": {
+    "id": "1453732635522"
+  },
+  "id": "1453732635522"
+}
 ```
 
 Example with Express Server and Mongoose
