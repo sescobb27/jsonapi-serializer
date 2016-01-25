@@ -279,7 +279,7 @@ an Object "Class".
 
 JSON API Payload
 ```javascript
-{
+var body = {
   "data": {
     "id": "1453732635522",
     "attributes": {
@@ -318,6 +318,11 @@ JSON API Payload
     "type": "orders"
   }
 }
+```
+
+```javascript
+var JSONAPIDeSerializer = require('jsonapi-serializer').DeSerializer;
+var serialized = new JSONAPIDeSerializer({}, body);
 ```
 
 Result
