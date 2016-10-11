@@ -412,8 +412,18 @@ var _ = require('lodash');
 function normalize(relationships) {
   var normalizedData = {};
   relationships = relationships || {};
-  Object.keys(relationships).forEach((key) => {
-    var relationData = relationships[key].data;
+  Object.keys(relationships).forEach((k) => {
+    let key = _.camelCase(k);
+    let relationData;
+    if (_.isArray(relationships[k])) {
+      if (_.isEmpty(relationships[k])) {
+        relationData = [];
+      } else {
+        relationData = relationships[k].data;
+      }
+    } else {
+      relationData = relationships[k] ? relationships[k].data : null;
+    }
     if (!relationData) {
       return;
     }
@@ -421,6 +431,8 @@ function normalize(relationships) {
       normalizedData[key] = relationData.map((relationObject) => relationObject.id);
     } else if (relationData.id) {
       normalizedData[key] = relationData.id;
+    } else {
+      normalizedData[key] = null;
     }
   });
   return normalizedData;
