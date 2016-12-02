@@ -1,10 +1,11 @@
 {
-  "name": "jsonapi-serializer",
+  "name": "node-jsonapi-serializer",
   "main": "index.js",
   "version": "2.0.2",
-  "homepage": "https://github.com/SeyZ/jsonapi-serializer",
+  "homepage": "https://github.com/sescobb27/node-jsonapi-serializer",
   "authors": [
-    "Sandro Munda <sandro@munda.me>"
+    "Sandro Munda <sandro@munda.me>",
+    "Simon Escobar <sescobb27@gmail.com>"
   ],
   "description": "A Node.js (browserified) framework agnostic library for serializing your data to JSON API",
   "keywords": [
