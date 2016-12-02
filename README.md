@@ -488,4 +488,4 @@ module.exports = app;
 
 # License
 
-[MIT](https://github.com/SeyZ/jsonapi-serializer/blob/master/LICENSE)
+[MIT](https://github.com/sescobb27/node-jsonapi-serializer/blob/master/LICENSE)
