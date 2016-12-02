@@ -30,6 +30,32 @@ describe('Options', function () {
     });
   });
 
+  describe('resourceType', function () {
+    it('should override the type field', function (done) {
+      var dataSet = [{
+        _id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+      }, {
+        _id: '5490143e69e49d0c8f9fc6bc',
+        firstName: 'Lawrence',
+        lastName: 'Bennett'
+      }];
+
+      var json = new JsonApiSerializer('users', dataSet, {
+        id: '_id',
+        resourceType: function () {
+          return 'customeType';
+        },
+        attributes: ['firstName', 'lastName']
+      });
+
+      expect(json.data[0].type).equal('customeType');
+      expect(json.data[1].type).equal('customeType');
+      done(null, json);
+    });
+  });
+
   describe('pluralizeType', function () {
     it('should allow type to not be pluralized', function (done) {
       var dataSet = {
@@ -87,7 +113,7 @@ describe('Options', function () {
           type: 'home',
           street: 'Dogwood Way',
           zip: '12345'
-        },{
+        }, {
           id: '3',
           type: 'work',
           street: 'Dogwood Way',
@@ -98,7 +124,7 @@ describe('Options', function () {
       var json = new JsonApiSerializer('user', dataSet, {
         attributes: ['firstName', 'lastName', 'address'],
         address: {
-          ref: function(user, address) {
+          ref: function (user, address) {
             return address.id;
           }
         },
@@ -134,7 +160,9 @@ describe('Options', function () {
 
       var json = new JsonApiSerializer('user', dataSet, {
         attributes: ['firstName', 'lastName'],
-        meta: { count: 1 }
+        meta: {
+          count: 1
+        }
       });
 
       expect(json.meta.count).equal(1);
@@ -189,14 +217,22 @@ describe('Options', function () {
         id: '1',
         firstName: 'Sandro',
         lastName: 'Munda',
-        books: [{ createdAt: '2015-08-04T06:09:24.864Z' }],
-        address: { zipCode: 42912 }
+        books: [{
+          createdAt: '2015-08-04T06:09:24.864Z'
+        }],
+        address: {
+          zipCode: 42912
+        }
       };
 
       var json = new JsonApiSerializer('user', dataSet, {
         attributes: ['firstName', 'lastName', 'books', 'address'],
-        books: { attributes: ['createdAt'] },
-        address: { attributes: ['zipCode'] },
+        books: {
+          attributes: ['createdAt']
+        },
+        address: {
+          attributes: ['zipCode']
+        },
         pluralizeType: false,
         keyForAttribute: function (attribute) {
           return inflection.underscore(attribute);
@@ -209,8 +245,12 @@ describe('Options', function () {
         .eql({
           'first_name': 'Sandro',
           'last_name': 'Munda',
-          books: [{ 'created_at': '2015-08-04T06:09:24.864Z' }],
-          address: { 'zip_code': 42912 }
+          books: [{
+            'created_at': '2015-08-04T06:09:24.864Z'
+          }],
+          address: {
+            'zip_code': 42912
+          }
         });
 
       done(null, json);
@@ -222,13 +262,17 @@ describe('Options', function () {
         firstName: 'Sandro',
         lastName: 'Munda',
         phoneNumber: ['555-555-5555'],
-        address: { zipCode: 42912 }
+        address: {
+          zipCode: 42912
+        }
       };
 
       var json = new JsonApiSerializer('user', dataSet, {
         attributes: ['firstName', 'lastName', 'books', 'address',
           'phoneNumber'],
-        address: { attributes: ['zipCode'] },
+        address: {
+          attributes: ['zipCode']
+        },
         pluralizeType: false,
         keyForAttribute: function (attribute) {
           return _.camelCase(attribute);
@@ -530,7 +574,11 @@ describe('JSON API Serializer', function () {
     });
 
     it('should not contains attributes key', function (done) {
-      var dataSet = [{ id: 2 }, { id: 3 }];
+      var dataSet = [{
+        id: 2
+      }, {
+        id: 3
+      }];
 
       var json = new JsonApiSerializer('tags', dataSet, {
         ref: true,
@@ -767,9 +815,11 @@ describe('JSON API Serializer', function () {
 
       expect(json.data[0].relationships.books.data).to.be.an('array')
         .eql([{
-          type: 'books', 'id': '52735730e16632ba1eee62dd'
+          type: 'books',
+          'id': '52735730e16632ba1eee62dd'
         }, {
-          type: 'books', 'id': '52735780e16610ba1eee15cd'
+          type: 'books',
+          'id': '52735780e16610ba1eee15cd'
         }]);
 
       done(null, json);
@@ -824,7 +874,10 @@ describe('JSON API Serializer', function () {
         },
         relationships: {
           author: {
-            data: { id: '2934f384bb824a7cb7b238b8dc194a22', type: 'authors' }
+            data: {
+              id: '2934f384bb824a7cb7b238b8dc194a22',
+              type: 'authors'
+            }
           }
         }
       });
@@ -912,8 +965,14 @@ describe('JSON API Serializer', function () {
         relationships: {
           authors: {
             data: [
-              { id: '2934f384bb824a7cb7b238b8dc194a22', type: 'authors' },
-              { id: '5ed95269a8334d8a970a2bd9fa599288', type: 'authors' },
+              {
+                id: '2934f384bb824a7cb7b238b8dc194a22',
+                type: 'authors'
+              },
+              {
+                id: '5ed95269a8334d8a970a2bd9fa599288',
+                type: 'authors'
+              },
             ]
           }
         }
@@ -983,7 +1042,10 @@ describe('JSON API Serializer', function () {
         },
         relationships: {
           neighbours: {
-            data: [{ type: 'neighbours', id: '5490143e69e49d0c8f9fc6bc' }]
+            data: [{
+              type: 'neighbours',
+              id: '5490143e69e49d0c8f9fc6bc'
+            }]
           }
         }
       });
@@ -991,7 +1053,10 @@ describe('JSON API Serializer', function () {
       expect(json.included).to.include({
         type: 'neighbours',
         id: '5490143e69e49d0c8f9fc6bc',
-        attributes: { 'first-name': 'Lawrence', 'last-name': 'Bennett' }
+        attributes: {
+          'first-name': 'Lawrence',
+          'last-name': 'Bennett'
+        }
       });
 
       done(null, json);
@@ -1031,7 +1096,7 @@ describe('JSON API Serializer', function () {
 
       var json = new JsonApiSerializer('users', dataSet, {
         topLevelLinks: {
-          self: function(data){
+          self: function (data) {
             return 'http://localhost:3000/api/users/' + data.id;
           }
         },
@@ -1096,16 +1161,26 @@ describe('JSON API Serializer', function () {
       expect(json.data).to.include({
         type: 'users',
         id: '54735750e16638ba1eee59cb',
-        attributes: { 'first-name': 'Sandro', 'last-name': 'Munda' },
-        links: { self: 'http://localhost:3000/api/datalinks' },
+        attributes: {
+          'first-name': 'Sandro',
+          'last-name': 'Munda'
+        },
+        links: {
+          self: 'http://localhost:3000/api/datalinks'
+        },
         relationships: {}
       });
 
       expect(json.data).to.include({
         type: 'users',
         id: '5490212e69e49d0c4f9fc6b4',
-        attributes: { 'first-name': 'Lawrence', 'last-name': 'Bennett' },
-        links: { self: 'http://localhost:3000/api/datalinks' },
+        attributes: {
+          'first-name': 'Lawrence',
+          'last-name': 'Bennett'
+        },
+        links: {
+          self: 'http://localhost:3000/api/datalinks'
+        },
         relationships: {}
       });
 
@@ -1140,7 +1215,10 @@ describe('JSON API Serializer', function () {
       expect(json.data).to.include({
         type: 'users',
         id: '54735750e16638ba1eee59cb',
-        attributes: { 'first-name': 'Sandro', 'last-name': 'Munda' },
+        attributes: {
+          'first-name': 'Sandro',
+          'last-name': 'Munda'
+        },
         links: {
           self: 'http://localhost:3000/api/datalinks/54735750e16638ba1eee59cb'
         },
@@ -1150,7 +1228,10 @@ describe('JSON API Serializer', function () {
       expect(json.data).to.include({
         type: 'users',
         id: '5490212e69e49d0c4f9fc6b4',
-        attributes: { 'first-name': 'Lawrence', 'last-name': 'Bennett' },
+        attributes: {
+          'first-name': 'Lawrence',
+          'last-name': 'Bennett'
+        },
         links: {
           self: 'http://localhost:3000/api/datalinks/5490212e69e49d0c4f9fc6b4'
         },
