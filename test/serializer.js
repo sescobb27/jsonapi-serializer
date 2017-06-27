@@ -54,6 +54,34 @@ describe('Options', function () {
       expect(json.data[1].type).equal('customeType');
       done(null, json);
     });
+
+    it('should pass the record to resource type function', function (done) {
+      var dataSet = [{
+        _id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+      }, {
+        _id: '5490143e69e49d0c8f9fc6bc',
+        firstName: 'Lawrence',
+        lastName: 'Bennett'
+      }];
+
+      var json = new JsonApiSerializer('users', dataSet, {
+        id: '_id',
+        resourceType: function (user) {
+          if (user.firstName === 'Sandro') {
+            return 'customeType';
+          } else {
+            return 'adminType';
+          }
+        },
+        attributes: ['firstName', 'lastName']
+      });
+
+      expect(json.data[0].type).equal('customeType');
+      expect(json.data[1].type).equal('adminType');
+      done(null, json);
+    });
   });
 
   describe('pluralizeType', function () {
